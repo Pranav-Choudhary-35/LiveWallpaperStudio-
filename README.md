@@ -4,9 +4,26 @@
 
 This project is designed to teach you **Redux basics** through a simple but powerful counter application. Whether you're new to Redux or looking to solidify your understanding, this project breaks down the core concepts in an easy-to-understand way.
 
+### 📚 Learning Path Guide
+
+This repository contains **TWO learning projects**:
+
+1. **Phase 1: Redux Counter Project** (This Section) ✅ START HERE
+   - Learn Redux fundamentals: Store, Actions, Reducers, Dispatch, Selectors
+   - Perfect for beginners
+   - Takes ~2-4 hours to understand
+   - **You are currently here**
+
+2. **Phase 2: LiveWallpaperStudio Project** (Advanced Section) 🚀 AFTER YOU COMPLETE PHASE 1
+   - Apply fundamentals to a real-world application
+   - Learn advanced patterns: Multiple slices, complex state, async operations
+   - **IMPORTANT: Only start this after mastering the counter project**
+
+> **⚠️ Important**: Do NOT skip to LiveWallpaperStudio without completing this counter project first. The advanced project builds directly on these fundamentals.
+
 ---
 
-## Table of Contents
+## Table of Contents - Phase 1: Counter Project
 
 1. [What is Redux?](#what-is-redux)
 2. [Why Redux?](#why-redux)
@@ -16,6 +33,7 @@ This project is designed to teach you **Redux basics** through a simple but powe
 6. [Understanding Each Part](#understanding-each-part)
 7. [Getting Started](#getting-started)
 8. [Key Takeaways](#key-takeaways)
+9. [Next: LiveWallpaperStudio Project](#-livewallpapersstudio---advanced-redux-application)
 
 ---
 
@@ -460,18 +478,36 @@ The app will start on `http://localhost:5173`
 
 ---
 
-## Next Steps
+## Next Steps - Ready to Level Up? 🚀
 
-Now that you understand Redux fundamentals:
+**Before** you move forward, make sure you can answer all the questions below. If you can't, review the relevant sections:
 
-1. **Modify this project**: Add more actions (reset counter, multiply, etc.)
-2. **Add multiple features**: Create a new slice for user preferences, theme, etc.
-3. **Explore Async Actions**: Learn about Redux Thunk for API calls
-4. **Build LiveWallpaperStudio**: Apply these concepts to a real project
+### Self-Check Checklist ✅
+
+- [ ] I understand what Redux Store, Actions, and Reducers are
+- [ ] I can explain why reducers must be pure functions
+- [ ] I know the difference between `dispatch()` and `useSelector()`
+- [ ] I can create a new action and reducer from scratch
+- [ ] I understand how the counter project works end-to-end
+
+### What To Do Next:
+
+1. **✅ Experiment with this project first**:
+   - Add a `reset` action that sets counter to 0
+   - Add a `multiply` action that multiplies by a number
+   - Try styling with CSS-in-JS or Tailwind
+
+2. **✅ Test your understanding**:
+   - Can you add a new feature to the store?
+   - Can you create multiple dispatches in one button click?
+
+3. **✅ Ready for Advanced Topics?**:
+   - Once comfortable with this project, move to **Phase 2: LiveWallpaperStudio** (see below)
+   - LiveWallpaperStudio builds directly on everything you've learned here
 
 ---
 
-## Resources
+## Resources for Phase 1
 
 - [Redux Official Docs](https://redux.js.org/)
 - [Redux Toolkit Docs](https://redux-toolkit.js.org/)
@@ -481,7 +517,7 @@ Now that you understand Redux fundamentals:
 
 ## Questions to Ask Yourself
 
-As you review this code, ask:
+Before moving to LiveWallpaperStudio, ask yourself:
 
 1. Where is the state stored?
 2. How does clicking a button change the state?
@@ -494,11 +530,23 @@ As you review this code, ask:
 
 ## Good Luck! 🚀
 
-This counter project is your foundation for Redux mastery. Experiment, modify, and build upon it!
+This counter project is your foundation for Redux mastery. Once you understand this completely, you'll be ready for **LiveWallpaperStudio**!
 
 ---
 
-# 🎨 LiveWallpaperStudio - Advanced Redux Application
+## 🎨 PHASE 2: LiveWallpaperStudio - Advanced Redux Application
+
+### ⚠️ IMPORTANT: Prerequisites
+
+**DO NOT START THIS SECTION UNLESS YOU HAVE:**
+- ✅ Completed and understood the Counter Project above
+- ✅ Can explain all Redux core concepts confidently
+- ✅ Have hands-on experience dispatching actions and using selectors
+- ✅ Understand how React components connect to Redux
+
+If you skipped the counter project, **go back and complete it first**. This advanced project assumes you understand everything above.
+
+---
 
 ## Introduction
 
