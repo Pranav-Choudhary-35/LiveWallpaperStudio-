@@ -39,7 +39,7 @@ setloaing(state){
     state.error=null
 
 },
-seterror(state){
+seterror(state,action){
 state.error=action.payload
 state.loading=false
 },
