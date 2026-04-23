@@ -33,7 +33,7 @@ setresult(state,action){
     state.loading=false    
 },
 
-setloaing(state){
+setloading(state){
 
     state.loading=true,
     state.error=null
@@ -52,6 +52,6 @@ clearResults(state){
 })
 
 
-export const{setquery,setactiveTab,setloaing,setresult,clearResults,seterror}=searchSlice.actions;
+export const{setquery,setactiveTab,setloading,setresult,clearResults,seterror}=searchSlice.actions;
 
 export default searchSlice.reducer;
