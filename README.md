@@ -556,156 +556,975 @@ Congratulations on completing the Redux fundamentals through the counter project
 
 **LiveWallpaperStudio** is a professional-grade web application that allows users to create, customize, manage, and preview dynamic wallpapers with real-time visual feedback. This project serves as an ideal platform to deepen your Redux expertise by introducing more complex state management scenarios, including:
 
-- **Multiple Redux slices** for managing different feature domains
-- **Complex state structures** with nested data and relationships
-- **Asynchronous operations** using Redux Thunk or Redux Saga
-- **Performance optimization** through selectors and memoization
-- **Real-world workflows** with form handling and validation
-- **Persistent state** management and local storage integration
+# LiveWallpaperStudio - Complete Implementation Guide 🎨
 
-### Project Objectives
+## Table of Contents
+1. [Project Overview](#project-overview)
+2. [Architecture & Design](#architecture--design)
+3. [Required Packages & Dependencies](#required-packages--dependencies)
+4. [Project Setup](#project-setup)
+5. [Step-by-Step Implementation](#step-by-step-implementation)
+6. [File Structure](#file-structure)
+7. [API Integration](#api-integration)
+8. [Redux State Management](#redux-state-management)
+9. [Lazy Loading Implementation](#lazy-loading-implementation)
+10. [Performance Optimization](#performance-optimization)
+11. [Troubleshooting](#troubleshooting)
 
-By building LiveWallpaperStudio, you will gain practical experience with:
+---
 
-1. **Scalable Architecture**: Learn how to structure Redux applications for maintainability and scalability
-2. **Feature-Based Organization**: Understand how to organize code using feature slices
-3. **Advanced Patterns**: Implement middleware, enhancers, and custom hooks
-4. **State Normalization**: Work with normalized state structures for efficient data management
-5. **Testing**: Write tests for actions, reducers, and selectors
-6. **Performance**: Optimize rendering and reduce unnecessary re-renders
-7. **Integration**: Connect Redux with third-party libraries and APIs
+## Project Overview
 
-### Why LiveWallpaperStudio?
+**LiveWallpaperStudio** is a modern web application that allows users to search, discover, and save media content (photos, videos, and GIFs) from multiple APIs. Built with React and Redux Toolkit, it demonstrates advanced state management patterns and real-world API integration.
 
-The LiveWallpaperStudio project is specifically designed because it:
+### Key Features:
+- ✅ Multi-tab search (Photos, Videos, GIFs)
+- ✅ Multiple API integration (Unsplash, Pexels, Giphy)
+- ✅ Save to collection with persistent storage
+- ✅ Lazy loading for images and route-based code splitting
+- ✅ Default search query ("nature") on app load
+- ✅ Responsive design with Tailwind CSS
+- ✅ Toast notifications for user feedback
+- ✅ Real-time search with Redux state management
 
-- **Requires multiple features**: Wallpapers, colors, effects, user settings—each needing its own reducer
-- **Involves complex interactions**: Changes in one feature affect others (e.g., selecting a wallpaper updates preview)
-- **Demands real-time updates**: State changes must reflect immediately in the UI
-- **Mirrors real applications**: Many production applications follow similar architectural patterns
-- **Provides portfolio value**: Building this project demonstrates professional-level Redux mastery
+---
 
-### How This Differs from the Counter Project
+## Architecture & Design
 
-| Aspect | Counter Project | LiveWallpaperStudio |
-|--------|-----------------|-------------------|
-| **Complexity** | Single reducer | Multiple interconnected reducers |
-| **State Structure** | Flat (value: 0) | Nested and normalized |
-| **Interactions** | Independent actions | Dependent state changes |
-| **Scale** | Single feature | Multiple features |
-| **Learning Focus** | Fundamentals | Advanced patterns |
-| **Use Cases** | Proof of concept | Production-ready patterns |
+### High-Level Architecture Diagram
 
-### Project Structure Overview
+```
+┌─────────────────────────────────────────────────────────┐
+│                      App.jsx                             │
+│         (Lazy Loading + Route Configuration)             │
+└──────────────────┬──────────────────────────────────────┘
+                   │
+    ┌──────────────┴──────────────┐
+    │                             │
+┌───▼──────────┐          ┌──────▼────────┐
+│   HOME.jsx   │          │ Collection.jsx │
+│  (Lazy Page) │          │   (Lazy Page)  │
+└───┬──────────┘          └────────────────┘
+    │
+┌───▼────────────────────────────────────┐
+│    SearchBar + Tabs + ResultGrid        │
+│  (Components Rendering Search Results) │
+└───┬────────────────────────────────────┘
+    │
+    ├─→ Redux Store (SearchSlice)
+    │   - query: 'nature' (default)
+    │   - activeTab: 'photos'
+    │   - result: []
+    │   - loading: false
+    │   - error: null
+    │
+    ├─→ ResultCard (with Lazy Loading)
+    │   - Intersection Observer for images
+    │   - Progressive image loading
+    │
+    └─→ API Layer
+        - fetchImages (Unsplash)
+        - fetchVideos (Pexels)
+        - fetchGif (Giphy)
+```
+
+### Data Flow
+
+```
+User searches "nature" → SearchBar dispatches setquery("nature")
+                    ↓
+Redux state updates with new query
+                    ↓
+ResultGrid useEffect triggered by query change
+                    ↓
+API requests data based on activeTab
+                    ↓
+Response mapped to standard format
+                    ↓
+Redux setresult() updates results
+                    ↓
+ResultGrid re-renders with new data
+                    ↓
+ResultCard components render with lazy loading
+                    ↓
+User sees results (images/videos load as they scroll into view)
+```
+
+---
+
+## Required Packages & Dependencies
+
+### Core Dependencies
+
+```json
+{
+  "dependencies": {
+    "@reduxjs/toolkit": "^2.11.2",           // Redux state management
+    "@tailwindcss/vite": "^4.2.2",           // Tailwind CSS integration
+    "axios": "^1.15.2",                      // HTTP client for API calls
+    "react": "^19.2.4",                      // React library
+    "react-dom": "^19.2.4",                  // React DOM rendering
+    "react-redux": "^9.2.0",                 // React Redux hooks
+    "react-router-dom": "^7.14.2",           // Routing and code splitting
+    "react-toastify": "^11.1.0"              // Toast notifications
+  }
+}
+```
+
+### Why Each Package?
+
+| Package | Purpose | Used For |
+|---------|---------|----------|
+| `@reduxjs/toolkit` | State management simplified | Managing search query, results, loading states |
+| `axios` | HTTP client | Making API requests to Unsplash, Pexels, Giphy |
+| `react-router-dom` | Routing & code splitting | Page navigation and lazy loading |
+| `react-redux` | React-Redux integration | useSelector, useDispatch hooks |
+| `react-toastify` | Toast notifications | Showing "Added to collection" messages |
+| `tailwindcss` | Utility-first CSS | Styling components responsively |
+
+### Dev Dependencies
+
+```json
+{
+  "devDependencies": {
+    "vite": "^8.0.4",                        // Fast build tool
+    "@vitejs/plugin-react": "^6.0.1",        // React plugin for Vite
+    "tailwindcss": "^4.2.2",                 // Tailwind CSS
+    "autoprefixer": "^10.5.0",               // Vendor prefixes
+    "postcss": "^8.5.10",                    // CSS processing
+    "eslint": "^9.39.4",                     // Code quality
+    "eslint-plugin-react-hooks": "^7.0.1"   // React hooks linting
+  }
+}
+```
+
+---
+
+## Project Setup
+
+### Step 1: Initialize Project
+
+```bash
+# Create Vite project
+npm create vite@latest LiveWallpaperStudio -- --template react
+
+cd LiveWallpaperStudio
+```
+
+### Step 2: Install Dependencies
+
+```bash
+npm install
+```
+
+### Step 3: Install Required Packages
+
+```bash
+npm install @reduxjs/toolkit react-redux axios react-router-dom react-toastify
+```
+
+### Step 4: Install Dev Dependencies
+
+```bash
+npm install -D tailwindcss autoprefixer postcss
+npx tailwindcss init -p
+```
+
+### Step 5: Environment Setup
+
+Create `.env` file in the root directory:
+
+```env
+VITE_UNSPLASH_KEY=your_unsplash_api_key_here
+VITE_PEXELS_KEY=your_pexels_api_key_here
+VITE_GIPHY_KEY=your_giphy_api_key_here
+```
+
+#### How to Get API Keys:
+
+**Unsplash API:**
+1. Go to https://unsplash.com/developers
+2. Create application
+3. Copy Access Key
+
+**Pexels API:**
+1. Go to https://www.pexels.com/api/
+2. Create API key
+3. Copy the key
+
+**Giphy API:**
+1. Go to https://developers.giphy.com/
+2. Create an application
+3. Get API key
+
+### Step 6: Configure Tailwind
+
+Edit `tailwind.config.js`:
+
+```javascript
+export default {
+  content: [
+    "./index.html",
+    "./src/**/*.{js,jsx}",
+  ],
+  theme: {
+    extend: {},
+  },
+  plugins: [],
+}
+```
+
+Add to `src/index.css`:
+
+```css
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+```
+
+### Step 7: Start Development Server
+
+```bash
+npm run dev
+```
+
+Visit `http://localhost:5173`
+
+---
+
+## Step-by-Step Implementation
+
+### Phase 1: Project Folder Structure
+
+Create this folder structure:
+
+```
+src/
+├── Api/
+│   └── MediaApi.js           # API calls
+├── Components/
+│   ├── SearchBar.jsx         # Search input
+│   ├── Tabs.jsx              # Tab switcher
+│   ├── ResultGrid.jsx        # Results container
+│   ├── ResultCard.jsx        # Individual result card
+│   ├── CollectionCard.jsx    # Collection item
+│   └── Navbar.jsx            # Navigation
+├── Pages/
+│   ├── HOME.jsx              # Search page
+│   └── Collection.jsx        # Collection page
+├── Redux/
+│   ├── store.js              # Store configuration
+│   └── features/
+│       ├── SearchSlice.js    # Search state
+│       └── CollectionSlice.js # Collection state
+├── App.jsx                   # Main app
+├── index.css                 # Tailwind styles
+└── main.jsx                  # Entry point
+```
+
+### Phase 2: Create Redux Store
+
+**`src/Redux/store.js`:**
+
+```javascript
+import { configureStore } from '@reduxjs/toolkit'
+import searchSlice from './features/SearchSlice'
+import collectionSlice from './features/CollectionSlice'
+
+const store = configureStore({
+  reducer: {
+    search: searchSlice,
+    collection: collectionSlice
+  }
+})
+
+export default store
+```
+
+### Phase 3: Create Redux Slices
+
+**`src/Redux/features/SearchSlice.js`:**
+
+```javascript
+import { createSlice } from '@reduxjs/toolkit'
+
+const searchSlice = createSlice({
+  name: 'search',
+  initialState: {
+    query: 'nature',        // Default search query
+    activeTab: 'photos',    // photos, videos, GIF
+    result: [],             // Search results
+    loading: false,         // Loading state
+    error: null             // Error message
+  },
+  reducers: {
+    setquery(state, action) {
+      state.query = action.payload
+    },
+    setactiveTab(state, action) {
+      state.activeTab = action.payload
+    },
+    setresult(state, action) {
+      state.result = action.payload
+      state.loading = false
+    },
+    setloading(state) {
+      state.loading = true
+      state.error = null
+    },
+    seterror(state, action) {
+      state.error = action.payload
+      state.loading = false
+    },
+    clearResults(state) {
+      state.result = []
+    }
+  }
+})
+
+export const { setquery, setactiveTab, setloading, setresult, clearResults, seterror } = searchSlice.actions
+export default searchSlice.reducer
+```
+
+**`src/Redux/features/CollectionSlice.js`:**
+
+```javascript
+import { createSlice } from '@reduxjs/toolkit'
+import { toast } from 'react-toastify'
+
+const collectionSlice = createSlice({
+  name: 'collection',
+  initialState: {
+    items: localStorage.getItem('collection') 
+      ? JSON.parse(localStorage.getItem('collection')) 
+      : []
+  },
+  reducers: {
+    addCollection(state, action) {
+      state.items.push(action.payload)
+      localStorage.setItem('collection', JSON.stringify(state.items))
+    },
+    removeCollection(state, action) {
+      state.items = state.items.filter(item => item.id !== action.payload)
+      localStorage.setItem('collection', JSON.stringify(state.items))
+    },
+    clearCollection(state) {
+      state.items = []
+      localStorage.removeItem('collection')
+    },
+    addedToast() {
+      toast.success('Added to collection!', {
+        position: 'bottom-right',
+        autoClose: 2000
+      })
+    }
+  }
+})
+
+export const { addCollection, removeCollection, clearCollection, addedToast } = collectionSlice.actions
+export default collectionSlice.reducer
+```
+
+### Phase 4: Create API Layer
+
+**`src/Api/MediaApi.js`:**
+
+```javascript
+import axios from 'axios'
+
+const UNSPLASH_KEY = import.meta.env.VITE_UNSPLASH_KEY
+const PEXELS_KEY = import.meta.env.VITE_PEXELS_KEY
+const GIPHY_KEY = import.meta.env.VITE_GIPHY_KEY
+
+export async function fetchImages(query, page = 1, per_page = 20) {
+  const res = await axios.get('https://api.unsplash.com/search/photos', {
+    params: { query, page, per_page },
+    headers: { Authorization: `Client-ID ${UNSPLASH_KEY}` }
+  })
+  return res.data
+}
+
+export async function fetchVideos(query, per_page = 20) {
+  const res = await axios.get('https://api.pexels.com/videos/search', {
+    params: { query, per_page },
+    headers: { Authorization: PEXELS_KEY }
+  })
+  return res.data
+}
+
+export async function fetchGif(query) {
+  const res = await axios.get('https://api.giphy.com/v1/gifs/search', {
+    params: {
+      api_key: GIPHY_KEY,
+      q: query,
+      limit: 10
+    }
+  })
+  return res.data
+}
+```
+
+### Phase 5: Create Components
+
+**`src/Components/SearchBar.jsx`:**
+
+```javascript
+import { useState, useEffect } from 'react'
+import { setquery } from '../Redux/features/SearchSlice'
+import { useDispatch, useSelector } from 'react-redux'
+
+const SearchBar = () => {
+  const defaultQuery = useSelector((state) => state.search.query)
+  const [text, setText] = useState(defaultQuery)
+  const dispatch = useDispatch()
+
+  useEffect(() => {
+    setText(defaultQuery)
+  }, [])
+
+  function submitHandler(e) {
+    e.preventDefault()
+    dispatch(setquery(text))
+  }
+
+  return (
+    <form onSubmit={submitHandler} className='flex bg-(--c1) gap-5 py-10 px-10'>
+      <input
+        value={text}
+        onChange={(e) => setText(e.target.value)}
+        required
+        className='w-full border-2 px-6 py-3 text-xl rounded outline-none text-black'
+        type="text"
+        placeholder='Search anything...'
+      />
+      <button className='active:scale-95 cursor-pointer border-2 px-6 py-3 text-xl rounded outline-none bg-blue-600 hover:bg-blue-700 transition'>
+        Search
+      </button>
+    </form>
+  )
+}
+
+export default SearchBar
+```
+
+### Phase 6: Lazy Loading Implementation
+
+**In `src/App.jsx`:**
+
+```javascript
+import './index.css'
+import { Route, Routes, Suspense } from 'react-router-dom'
+import { lazy } from 'react'
+import Navbar from './Components/Navbar.jsx'
+import { ToastContainer } from 'react-toastify'
+
+// Lazy load page components for code splitting
+const HOME = lazy(() => import('./Pages/HOME.jsx'))
+const Collection = lazy(() => import('./Pages/Collection.jsx'))
+
+// Loading fallback component
+const LoadingFallback = () => (
+  <div className='flex items-center justify-center min-h-screen'>
+    <div className='text-center'>
+      <div className='animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600 mx-auto mb-4'></div>
+      <p className='text-xl text-gray-400'>Loading page...</p>
+    </div>
+  </div>
+)
+
+function App() {
+  return (
+    <div className='min-h-screen text-white w-full bg-gray-950'>
+      <Navbar />
+      <Suspense fallback={<LoadingFallback />}>
+        <Routes>
+          <Route path='/' element={<HOME />} />
+          <Route path='/collection' element={<Collection />} />
+        </Routes>
+      </Suspense>
+      <ToastContainer />
+    </div>
+  )
+}
+
+export default App
+```
+
+### Phase 7: Image Lazy Loading with Intersection Observer
+
+**`src/Components/ResultCard.jsx`:**
+
+```javascript
+import { useDispatch } from 'react-redux'
+import { addCollection, addedToast } from '../Redux/features/CollectionSlice'
+import { useRef, useEffect, useState } from 'react'
+
+const ResultCard = ({ item }) => {
+  const dispatch = useDispatch()
+  const imageRef = useRef(null)
+  const videoRef = useRef(null)
+  const [isLoaded, setIsLoaded] = useState(false)
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setIsLoaded(true)
+            observer.unobserve(entry.target)
+          }
+        })
+      },
+      { threshold: 0.1 }
+    )
+
+    const targetElement = imageRef.current || videoRef.current
+    if (targetElement) {
+      observer.observe(targetElement)
+    }
+
+    return () => {
+      if (targetElement) observer.unobserve(targetElement)
+    }
+  }, [])
+
+  const addToCollection = (item) => {
+    dispatch(addCollection(item))
+    dispatch(addedToast())
+  }
+
+  return (
+    <div className='w-[18vw] relative h-80 bg-white rounded-xl overflow-hidden'>
+      <a target='_blank' className='h-full' href={item.url}>
+        {item.type === 'photo' && (
+          <img
+            ref={imageRef}
+            className='h-full w-full object-cover object-center'
+            src={isLoaded ? item.src : item.thumbnail}
+            alt={item.title}
+            loading='lazy'
+          />
+        )}
+        {item.type === 'video' && (
+          <video
+            ref={videoRef}
+            className='h-full w-full object-cover object-center'
+            autoPlay
+            loop
+            muted
+            src={isLoaded ? item.src : undefined}
+            poster={item.thumbnail}
+          />
+        )}
+        {item.type === 'gif' && (
+          <img
+            ref={imageRef}
+            className='h-full w-full object-cover object-center'
+            src={isLoaded ? item.src : item.thumbnail}
+            alt={item.title}
+            loading='lazy'
+          />
+        )}
+      </a>
+      <button
+        onClick={() => addToCollection(item)}
+        className='absolute bottom-6 right-4 bg-indigo-600 active:scale-95 text-white rounded px-3 py-1 cursor-pointer font-medium'
+      >
+        Save
+      </button>
+    </div>
+  )
+}
+
+export default ResultCard
+```
+
+---
+
+## File Structure
 
 ```
 LiveWallpaperStudio/
 ├── src/
-│   ├── App/
-│   │   ├── App.jsx
-│   │   └── App.css
-│   ├── ReduxStore/
-│   │   ├── store.js
+│   ├── Api/
+│   │   └── MediaApi.js                 # API integration
+│   ├── Components/
+│   │   ├── SearchBar.jsx               # Search input component
+│   │   ├── Tabs.jsx                    # Tab switcher
+│   │   ├── ResultGrid.jsx              # Results grid container
+│   │   ├── ResultCard.jsx              # Individual result card
+│   │   ├── CollectionCard.jsx          # Collection item display
+│   │   └── Navbar.jsx                  # Navigation bar
+│   ├── Pages/
+│   │   ├── HOME.jsx                    # Search/home page
+│   │   └── Collection.jsx              # Collection page
+│   ├── Redux/
+│   │   ├── store.js                    # Redux store setup
 │   │   └── features/
-│   │       ├── wallpapers.js       # Wallpaper data management
-│   │       ├── customization.js    # Color and effect customization
-│   │       ├── preview.js          # Real-time preview state
-│   │       └── settings.js         # User preferences
-│   ├── components/
-│   │   ├── Sidebar/
-│   │   ├── Editor/
-│   │   ├── Preview/
-│   │   └── Settings/
-│   ├── main.jsx
-│   └── index.css
-├── package.json
-└── README.md
+│   │       ├── SearchSlice.js          # Search state management
+│   │       └── CollectionSlice.js      # Collection state management
+│   ├── App.jsx                         # Main App component (with lazy loading)
+│   ├── index.css                       # Tailwind CSS & global styles
+│   └── main.jsx                        # React entry point
+├── index.html                          # HTML template
+├── package.json                        # Dependencies
+├── vite.config.js                      # Vite configuration
+├── tailwind.config.js                  # Tailwind CSS config
+├── postcss.config.js                   # PostCSS config
+├── .env                                # Environment variables
+└── README.md                           # Project documentation
 ```
-
-### Getting Started with LiveWallpaperStudio
-
-As you progress through this project, each phase will build upon the previous one:
-
-1. **Phase 1: Project Setup** - Initialize the project structure and Redux store architecture
-2. **Phase 2: Wallpaper Management** - Create a wallpaper slice with CRUD operations
-3. **Phase 3: Customization Engine** - Build color and effect customization features
-4. **Phase 4: Real-time Preview** - Implement live preview with state synchronization
-5. **Phase 5: User Settings** - Add persistent settings management
-6. **Phase 6: Advanced Features** - Introduce async operations and optimization
-
-### Prerequisites
-
-Before diving into LiveWallpaperStudio, ensure you:
-
-- ✅ Understand Redux fundamentals from the counter project
-- ✅ Are comfortable with React hooks (`useState`, `useEffect`)
-- ✅ Know how to use `useDispatch` and `useSelector`
-- ✅ Understand immutability and pure functions
-- ✅ Have basic CSS knowledge for styling
-
-### Key Concepts You'll Master
-
-Throughout this project, you'll deepen your understanding of:
-
-- **Slice Design**: Organizing state by domain/feature
-- **Selector Functions**: Creating efficient queries into your state
-- **Thunks**: Handling asynchronous logic in Redux
-- **Middleware**: Intercepting and handling actions
-- **State Normalization**: Storing related data efficiently
-- **Memoization**: Preventing unnecessary re-renders
-- **Error Handling**: Managing error states elegantly
-
-### The Learning Journey
-
-```
-Counter Project (Fundamentals)
-         ↓
-         └─→ Single feature, simple state
-             ↓
-LiveWallpaperStudio (Advanced)
-         ↓
-         ├─→ Multiple features
-         ├─→ Complex state interactions
-         ├─→ Async operations
-         ├─→ Performance optimization
-         ├─→ Real-world patterns
-         └─→ Production-ready architecture
-             ↓
-Professional Redux Mastery
-```
-
-### Documentation Standards
-
-Throughout the LiveWallpaperStudio README, you'll find:
-
-- **Conceptual explanations** of each feature
-- **Code examples** demonstrating Redux patterns
-- **Visual diagrams** showing data flow
-- **Step-by-step guides** for implementation
-- **Best practices** and common pitfalls
-- **Testing strategies** for Redux code
-
-### Encouragement
-
-The jump from the counter project to LiveWallpaperStudio may seem significant, but remember:
-
-- Every advanced concept is built on fundamentals you've already learned
-- Each phase introduces concepts gradually
-- Real-world problems are solved with the same Redux principles
-- Challenges you face will strengthen your understanding
 
 ---
 
-## Transition Note
+## API Integration
 
-Now that you're ready for LiveWallpaperStudio, the next sections of this README will guide you through building this application. Each phase will include:
+### How APIs Are Used:
 
-1. **Objectives**: What you'll learn in this phase
-2. **Architecture**: How Redux is organized for this feature
-3. **Implementation**: Step-by-step code examples
-4. **Best Practices**: Professional patterns and recommendations
-5. **Challenges**: Exercises to deepen understanding
+```javascript
+// Unsplash - High-quality photos
+fetchImages("nature") 
+→ Returns: [{ id, alt_description, urls, links }]
 
-Ready to take your Redux skills to the next level? Let's build something amazing! 🚀
+// Pexels - HD videos
+fetchVideos("nature") 
+→ Returns: [{ id, user, image, video_files, url }]
+
+// Giphy - Animated GIFs
+fetchGif("nature") 
+→ Returns: [{ id, title, images, url }]
+```
+
+### Standardized Response Format:
+
+All responses are mapped to a standard format:
+
+```javascript
+{
+  id: string,              // Unique identifier
+  type: 'photo' | 'video' | 'gif',
+  title: string,           // Display title
+  thumbnail: string,       // Thumbnail URL (for lazy loading)
+  src: string,             // Full-size media URL
+  url: string              // Original source URL
+}
+```
 
 ---
+
+## Redux State Management
+
+### State Structure:
+
+```javascript
+{
+  search: {
+    query: 'nature',              // Current search query
+    activeTab: 'photos',          // Current tab
+    result: [],                   // API results
+    loading: false,               // Loading state
+    error: null                   // Error message
+  },
+  collection: {
+    items: []                     // Saved items
+  }
+}
+```
+
+### Key Actions:
+
+```javascript
+// Search Slice Actions
+setquery(text)              // Update search query
+setactiveTab(tab)           // Switch between tabs
+setloading()                // Start loading
+setresult(data)             // Set results
+seterror(message)           // Set error
+clearResults()              // Clear results
+
+// Collection Slice Actions
+addCollection(item)         // Add item to collection
+removeCollection(id)        // Remove from collection
+clearCollection()           // Clear all items
+addedToast()               // Show toast notification
+```
+
+---
+
+## Lazy Loading Implementation
+
+### 1. Route-Based Code Splitting
+
+```javascript
+// Lazy load entire pages
+const HOME = lazy(() => import('./Pages/HOME.jsx'))
+const Collection = lazy(() => import('./Pages/Collection.jsx'))
+
+// Wrap with Suspense
+<Suspense fallback={<LoadingFallback />}>
+  <Routes>
+    <Route path='/' element={<HOME />} />
+    <Route path='/collection' element={<Collection />} />
+  </Routes>
+</Suspense>
+```
+
+**Benefits:**
+- ✅ Smaller initial bundle size
+- ✅ Pages load only when needed
+- ✅ Better perceived performance
+
+### 2. Image Lazy Loading with Intersection Observer
+
+```javascript
+useEffect(() => {
+  const observer = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          setIsLoaded(true)        // Load full-size image
+          observer.unobserve(entry.target)
+        }
+      })
+    },
+    { threshold: 0.1 }             // Load when 10% visible
+  )
+
+  observer.observe(imageRef.current)
+}, [])
+
+// Show thumbnail while loading, then full image
+<img 
+  src={isLoaded ? item.src : item.thumbnail} 
+  loading='lazy'
+/>
+```
+
+**Benefits:**
+- ✅ Only load images as user scrolls
+- ✅ Reduce memory usage
+- ✅ Faster initial page load
+- ✅ Better for slow connections
+
+### 3. Default Query Loading
+
+```javascript
+// SearchSlice initialState
+initialState: {
+  query: 'nature',  // Loads results automatically
+}
+
+// HOME.jsx shows results immediately
+{query && query.trim() !== "" && (
+  <div>
+    <Tabs />
+    <ResultGrid />  // Fetches data on component mount
+  </div>
+)}
+```
+
+---
+
+## Performance Optimization
+
+### Optimized ResultGrid Loading States:
+
+```javascript
+if (error) return (
+  <div className='flex items-center justify-center min-h-64 px-10'>
+    <div className='text-center'>
+      <p className='text-2xl text-red-500 font-semibold'>Error Loading Content</p>
+      <p className='text-gray-400'>{error}</p>
+    </div>
+  </div>
+)
+
+if (loading) return (
+  <div className='flex items-center justify-center min-h-64 px-10'>
+    <div className='text-center'>
+      <div className='animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600'></div>
+      <p className='text-xl text-gray-400'>Loading {activeTab}...</p>
+    </div>
+  </div>
+)
+```
+
+### Performance Tips:
+
+1. **Bundle Size Reduction:**
+   - Use `React.lazy()` for route-based splitting
+   - Dynamic imports reduce initial bundle
+
+2. **Image Performance:**
+   - Lazy load with Intersection Observer
+   - Show thumbnail first, load full image on scroll
+
+3. **State Management:**
+   - Redux prevents prop drilling
+   - useSelector triggers re-renders only on state changes
+
+4. **Rendering Optimization:**
+   - Use `useMemo` for expensive calculations
+   - Memoize components with `React.memo` if needed
+
+---
+
+## Common Issues & Troubleshooting
+
+### Issue 1: API Keys Not Working
+
+**Problem:** 401 Unauthorized errors
+**Solution:**
+```bash
+# Verify .env file exists with correct keys
+cat .env
+
+# Check keys are correctly formatted
+VITE_UNSPLASH_KEY=your_actual_key_here
+```
+
+### Issue 2: Images Not Loading
+
+**Problem:** Broken image links
+**Solution:**
+```javascript
+// Check thumbnail vs src URLs
+console.log('Thumbnail:', item.thumbnail)
+console.log('Full:', item.src)
+
+// Verify API response mapping
+```
+
+### Issue 3: Collection Not Persisting
+
+**Problem:** Collection clears on page reload
+**Solution:**
+```javascript
+// CollectionSlice initializes from localStorage
+initialState: {
+  items: localStorage.getItem('collection')
+    ? JSON.parse(localStorage.getItem('collection'))
+    : []
+}
+
+// Always update localStorage when adding/removing
+localStorage.setItem('collection', JSON.stringify(state.items))
+```
+
+### Issue 4: Lazy Loading Not Working
+
+**Problem:** Pages load synchronously
+**Solution:**
+```javascript
+// Ensure you're using React.lazy with Suspense
+const HOME = lazy(() => import('./Pages/HOME.jsx'))
+
+// Always wrap with Suspense
+<Suspense fallback={<LoadingFallback />}>
+  <Routes>{/* routes */}</Routes>
+</Suspense>
+```
+
+### Issue 5: Tailwind Styles Not Applied
+
+**Problem:** Styles not appearing
+**Solution:**
+```bash
+# Restart dev server
+npm run dev
+
+# Verify tailwind.config.js includes all content paths
+content: ["./index.html", "./src/**/*.{js,jsx}"]
+```
+
+---
+
+## Tips for Further Enhancement
+
+### 1. Add Infinite Scroll
+```javascript
+// Implement pagination in API calls
+fetchImages(query, page, per_page)
+
+// Detect bottom of page and load more results
+const handleScroll = () => {
+  if (window.innerHeight + window.scrollY >= document.body.offsetHeight) {
+    // Load more
+  }
+}
+```
+
+### 2. Add Search History
+```javascript
+// Store recent searches in Redux
+const [searchHistory, setSearchHistory] = useState([])
+localStorage.setItem('searchHistory', JSON.stringify(searchHistory))
+```
+
+### 3. Add Favorites/Bookmarks
+```javascript
+// Similar to collection, but with favorites state
+```
+
+### 4. Add Filtering Options
+```javascript
+// Add filters for date, orientation, size, etc.
+```
+
+### 5. Add Dark/Light Theme
+```javascript
+// Toggle theme with Context API or Redux
+```
+
+---
+
+## Deployment
+
+### Build for Production
+
+```bash
+npm run build
+```
+
+### Deploy to Netlify
+
+```bash
+# Install Netlify CLI
+npm install -g netlify-cli
+
+# Login to Netlify
+netlify login
+
+# Deploy
+netlify deploy --prod --dir=dist
+```
+
+### Deploy to Vercel
+
+```bash
+# Install Vercel CLI
+npm install -g vercel
+
+# Deploy
+vercel
+```
+
+---
+
+## Summary
+
+You now have a fully functional LiveWallpaperStudio application with:
+- ✅ Redux state management for search and collections
+- ✅ Multi-API integration (Unsplash, Pexels, Giphy)
+- ✅ Route-based code splitting with lazy loading
+- ✅ Image lazy loading with Intersection Observer
+- ✅ Default "nature" search query
+- ✅ Toast notifications and error handling
+- ✅ Responsive design with Tailwind CSS
+- ✅ Persistent collection storage
+
+This project serves as an excellent foundation for understanding advanced Redux patterns and real-world application development!
+
+---
+
+**Happy Coding! 🚀**

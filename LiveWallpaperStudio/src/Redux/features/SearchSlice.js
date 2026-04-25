@@ -5,11 +5,13 @@ const searchSlice=createSlice({
     name:'search',
 
     initialState:{
-     query:' ',
+     query:'nature',
      activeTab:'photos',
      result:[],
      loading:false,
-     error:null
+     error:null,
+     page:1,
+     hasMore:true
 
     },
 
@@ -28,9 +30,22 @@ setactiveTab(state,action){
 },
 
 setresult(state,action){
-
     state.result=action.payload
-    state.loading=false    
+    state.loading=false
+    state.page=1
+},
+
+appendResult(state,action){
+    state.result=[...state.result,...action.payload]
+    state.loading=false
+},
+
+setPage(state,action){
+    state.page=action.payload
+},
+
+setHasMore(state,action){
+    state.hasMore=action.payload
 },
 
 setloading(state){
@@ -52,6 +67,6 @@ clearResults(state){
 })
 
 
-export const{setquery,setactiveTab,setloading,setresult,clearResults,seterror}=searchSlice.actions;
+export const{setquery,setactiveTab,setloading,setresult,clearResults,seterror,appendResult,setPage,setHasMore}=searchSlice.actions;
 
 export default searchSlice.reducer;

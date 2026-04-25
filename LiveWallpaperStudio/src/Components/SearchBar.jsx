@@ -1,10 +1,15 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { setquery } from "../Redux/features/SearchSlice";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 
 
 const SearchBar = () => {
-  const [text, setText] = useState("");
+  const defaultQuery = useSelector((state) => state.search.query);
+  const [text, setText] = useState(defaultQuery);
+
+  useEffect(() => {
+    setText(defaultQuery);
+  }, []);
   
   const dispatch=useDispatch();
  
@@ -16,25 +21,24 @@ const SearchBar = () => {
   }
 
   return (
-        <div>
-            <form onSubmit={(e) => {
-                submitHandler(e)
-            }} className='flex  bg-cyan-950 gap-5 py-10 px-10'>
-
-                <input
-                    value={text}
-                    onChange={(e) => {
-                        setText(e.target.value)
-                    }}
-                    required
-                    className='w-full border-2 px-6 py-3 text-xl rounded outline-none'
-                    type="text"
-                    placeholder='Search anything...' />
-
-                <button className='active:scale-95 cursor-pointer border-2 px-6 py-3 text-xl rounded outline-none'>Search</button>
-            </form>
-        </div>
-    )
+    <div>
+      <form onSubmit={(e) => {
+        submitHandler(e)
+      }} className='flex gap-5 py-6 px-10 bg-gray-900 border-b border-gray-700'>
+        <input
+          value={text}
+          onChange={(e) => {
+            setText(e.target.value)
+          }}
+          required
+          className='w-full border-2 border-gray-600 px-6 py-3 text-xl rounded outline-none bg-gray-800 text-white placeholder-gray-400 focus:border-blue-500 transition'
+          type="text"
+          placeholder='🔍 Search anything...'
+        />
+        <button className='active:scale-95 cursor-pointer bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 text-xl rounded font-semibold transition'>Search</button>
+      </form>
+    </div>
+  );
 };
 
 export default SearchBar;

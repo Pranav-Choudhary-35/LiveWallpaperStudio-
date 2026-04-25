@@ -4,7 +4,7 @@ const UNSPLASH_KEY = import.meta.env.VITE_UNSPLASH_KEY;
 const PEXELS_KEY = import.meta.env.VITE_PEXELS_KEY;
 const GIPHY_KEY = import.meta.env.VITE_GIPHY_KEY;
 
-export async function fetchImages(query, page = 1, per_page = 20) {
+export async function fetchImages(query, page = 10, per_page = 20) {
   const res = await axios.get("https://api.unsplash.com/search/photos", {
     params: {
       query,
@@ -19,10 +19,11 @@ export async function fetchImages(query, page = 1, per_page = 20) {
   return res.data;
 }
 
-export async function fetchVideos(query, per_page = 20) {
+export async function fetchVideos(query, page = 1, per_page = 20) {
   const res = await axios.get("https://api.pexels.com/videos/search", {
     params: {
       query,
+      page,
       per_page,
     },
     headers: {
@@ -38,7 +39,7 @@ export async function fetchGif(query) {
     params: {
       api_key: GIPHY_KEY,
       q: query,
-      limit: 10, // Number of results
+      limit: 50, // Number of results
     },
   });
   
